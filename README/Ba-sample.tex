@@ -1,0 +1,138 @@
+\documentclass[a4paper,11pt,oneside]{article}
+
+% $Id: ba-sample.tex 952 2006-03-06 20:14:35Z schoenw $
+
+% To use this template, you have to have a halfway complete LaTeX
+% installation and you have to run pdflatex, followed by bibtex,
+% following by one-two more pdflatex runs.
+%
+% Note thad usimg a spel chequer (e.g. ispell, aspell) is generolz
+% a very guud ideo.
+
+\usepackage{times}		%% native times roman fonts
+\usepackage{parskip}		%% blank lines between paragraphs, no indent
+\usepackage[pdftex]{graphicx}	%% include graphics, preferrably pdf
+\usepackage[pdftex]{hyperref}	%% many PDF options can be set here
+\usepackage{amsmath}
+\usepackage[brazilian]{babel}
+\pdfadjustspacing=1		%% force LaTeX-like character spacing
+
+\hypersetup{
+  pdfauthor = {Jos\'e Leal Domingues Neto},
+  pdftitle = {Entreg\'avel TP2},
+  pdfkeywords = {tp2}
+}
+
+\begin{document}
+
+  \thispagestyle{empty}
+
+  \begin{flushleft}
+    \textbf{\huge UFMG - PPGCC}\\
+    \vspace*{6mm}
+    \textbf{\huge TP2 - Paradigmas}
+  \end{flushleft}
+  \vspace*{6mm}
+  \begin{flushleft}
+    \textbf{\large Jos\'e Leal Domingues Neto}\\[2ex]
+  \end{flushleft}
+  \vspace*{1mm}
+  \begin{flushleft}
+    \textit{
+      Data: \today \\
+      PAA}
+  \end{flushleft}
+  \vspace*{2mm}
+
+\newpage
+
+  \section{Introdu\c{c}\~{a}o do problema}
+    \subsection{Problema}
+    O problema em quest\~{a}o \'e bem parecido com o caixeiro viajante: Quer-se um caminho \'otimo entre cidades, que seja dividido entre dois grupos de forma a minimizar o seu custo conjunto. Mais formalmente falando, temos um grafo completo \begin{math} G = (V, E) \end{math}, com cada aresta com um peso \begin{math} p_i \end{math}. 
+    Devemos dividir os v\'ertices em grupos \begin{math} A := \{ v_i, v_j, ... \} \end{math} e \begin{math} B := \{ v_k, v_a, .. \} \end{math} de forma que a soma de seus pesos seja m\'inima. H\'a a restri\c{c}\~{a}o de que a ordem dos v\'ertices \begin{math} v_i, v_{i+1}, .. \end{math} deve ser respeitada ao incluir-se em um grupo.
+  \section{Modelagens e solu\c{c}\~{o}es}
+    \subsection{Din\^amica}
+    Para a resolu\c{c}\~{a}o do problema em programa\c{c}\~{a}o din\^amica, temos que simplesmente pensar qual \'e o nosso est\'agio e estado.
+    O problema \'e que como temos dois grupos para a divis\~{a}o, temos que de alguma forma incluir isso tamb\'em na solu\c{c}\~{a}o. Ap\'os pensar sobre a modelagem, como temos que passar por todas as cidades, o subproblema se limita a simplesmente a pergunta: A cidade em quest\~{a}o deve ser inclu\'ida no grupo \textit{A} ou \textit{B}? Pensado isso, a seguinte equa\c{c}\~{a}o recursiva se forma:
+    
+    \[
+      OPT(j, A, B) = 
+      \begin{cases}
+      0 & \text{se } j = 0  \\
+      min\left\{ \begin{aligned}
+	P(A \cup \{c_j\}) + OPT(j-1, A - \{c_j\}, B), \\
+	P(B \cup \{c_j\}) + OPT(j-1, A, B - \{c_j\}))
+		  \end{aligned}
+	\right\} & \text{se } j > 0
+      \end{cases}
+    \]
+    
+    Onde \textit{P} retorna o peso da aresta dos dois \'ultimos elementos do grupo. Com a fun\c{c}\~{a}o recursiva feita, temos diretamente um m\'etodo estilo \textit{bottom-up} iterativo.
+    
+    \subsection{Guloso}
+    O algoritmo guloso foi relativamente mais f\'acil de ser constru\'ido, tendo em vista que n\~{a}o existem muitas possibilidades e a solu\c{c}\~{a}o \'e bem mais intuitiva. O m\'etodo guloso nesse caso \'e iterar por cada elemento de forma linear e decidir a inclus\~{a}o de um v\'ertice \begin{math} v_i \end{math} nos grupos \begin{math} A \text{ ou } B \end{math} onde eles ir\~{a}o incindir o menor custo.
+    
+    \subsection{Backtracking}
+    A implementa\c{c}\~{a}o do Backtracking vai construindo todas as solu\c{c}\~{o}es poss\'iveis, podando a \'arvore de solu\c{c}\~{o}es quando o seu valor atual ultrapassa o m\'inimo j\'a atingido nos n\'iveis completos. Isso \'e feito de forma recursiva, usando um algoritmo estilo \textit{Depth-First-Search}, onde primeiro faz-se toda a \'arvore incluindo v\'ertice \begin{math} v_j \end{math} no Grupo \textit{A}, checa-se a soma e a solu\c{c}\~{a}o, e s\'o ap\'os expande-se as op\c{c}\~{o}es para o grupo \textit{B}, caso a soma atual j\'a n\~{a}o ultrapasse a melhor das solu\c{c}\~{o}es j\'a completas.
+
+    
+    \section{An\'alise da solu\c{c}\~{a}o sub\'otima gulosa}
+    A solu\c{c}\~{a}o sub\'otima gulosa produz na maioria dos casos uma solu\c{c}\~{a}o plaus\'ivel e que poder\'a ser confundida como a \'otima. Por\'em ela se engasga com alguns casos especiais. Considere o seguinte caso, onde a c\'elula \begin{math} c_{ij} \end{math} reflete o peso da aresta do v\'ertice \begin{math} v_i \text{ para } v_j \end{math} para os v\'ertices \begin{math} V := \{ A, B, C, D \}\end{math}
+
+    \begin{center}
+      \begin{tabular}{r r r r r}
+	& \textbf{A} & \textbf{B} & \textbf{C} & \textbf{D} \\
+	\textbf{A} & 0 & 1 & 10 & 11 \\
+	\textbf{B} & 1 & 0 & 12 & 13 \\
+	\textbf{C} & 10 & 12 & 0 & 14 \\
+	\textbf{D} & 11 & 13 & 14 & 0
+      \end{tabular}
+    \end{center}
+    
+    Seguindo os passos do algor\'itmo, temos as seguintes decis\~{o}es nos passos \begin{math} a_1 \text{ e } a_2 \end{math}: como o v\'ertice inicial de cada grupo n\~{a}o adiciona nenhum custo ao modelo, o algor\'itmo ir\'a distribuir \begin{math} v_1 \text{ e } v_2 \end{math} da maneira \begin{math} A = \{v_A\} \text{ e } B = \{v_B\} \end{math}. Por\'em j\'a \'e poss\'ivel ver, que seria interessante utilizar a aresta entre esses dois v\'ertices, pois ela possui peso 1 apenas. No final dos passos temos a resposta: \begin{math} A := \{ v_A, v_C \} \text{ e } B := \{ v_B, v_D \}\end{math}. Que n\~{a}o \'e a solu\c{c}\~{a}o \'otima.
+    
+    \section{An\'alise da complexidade de tempo e espa\c{c}o} 
+    \subsection{Programa\c{c}\~{a}o Din\^amica}
+    No algoritmo de programa\c{c}\~{a}o din\^amica, para cada v\'ertice \begin{math} v_i \end{math}, ser\'a adicionado a um grupo de solu\c{c}\~{o}es as duas possibilidades para cada solu\c{c}\~{a}o anterior. Significa ent\~{a}o que dobramos nossa combina\c{c}\~{a}o de solu\c{c}\~{o}es de forma: \begin{math} S := \{ 2^0, 2^1, ..., 2^n \}  \end{math}. Temos ent\~{a}o para essa solu\c{c}\~{a}o a seguinte equa\c{c}\~{a}o recursiva: 
+    
+    \begin{center}
+      \begin{math} T(n) = T(n-1) + O(2^n) \end{math}
+    \end{center}
+    
+    Expandindo-a, temos ent\~{a}o \begin{math} \sum_{i = 1}^{n} 2^i \end{math}. Sua complexidade de tempo \'e ent\~{a}o \begin{math} O(2^nn) \end{math}. Cada passo, somamos os elementos tamb\'em, incindindo um custo \begin{math} O(n) \end{math}, mas este acaba sendo irrelevante perto do anterior. Em rela\c{c}\~{a}o a espa\c{c}o, para cada passo guardamos \begin{math} 2^n \end{math} elementos, apagando os anteriores em cada passo. Ou seja: complexidade de espa\c{c}o: \begin{math} O(2^n) \end{math}.
+
+    \subsection{Guloso}
+    Como simplesmente passamos 1 vez pelo nosso grupo de v\'ertices, decidindo localmente qual ser\'a o subgrupo assinalado, temos que o algoritmo guloso em quest\~{a}o \'e \begin{math} O(n) \end{math}. Em espa\c{c}o, guardamos somente nossa solu\c{c}\~{a}o atual, sendo ent\~{a}o \begin{math} O(1) \end{math}.
+    \subsection{Backtracking}
+    Para o \textit{Backtracking}, em cada passo geramos todas as possibilidades poss\'iveis, criando uma \'arvore de solu\c{c}\~{o}es e podando-a quando necess\'ario. Gerando a \'arvore temos: \begin{math} O(2^n) \end{math}, j\'a que fazemos todas as permuta\c{c}\~{o}es. Como h\'a a poda, a partir de certo ponto, esse n\'umero ir\'a diminuir a cada passo. Por\'em n\~{a}o \'e determin\'istico, j\'a que depende da entrada. 
+    O solu\c{c}\~{a}o usa \begin{math} O(2^n) \end{math} de espa\c{c}o, j\'a que cada folha da \'arvore \'e guardado.
+    
+    \section{Experimentos}
+    
+    A seguir temos os experimentos com entradas variadas e seu respectivo runtime. Os valores est\~{a}o milissegundos.
+    
+    \begin{center}
+      \begin{tabular}{c c c c}
+      \textbf{n} & \textbf{Backtracking} & \textbf{Dynamic} & \textbf{Greedy} \\
+      4 & 4 & 2 & 0 \\
+      8 & 37 & 15 & 0 \\
+      14 & 367 & 216 & 0 \\
+      18 & 16586 & 24152 & 1 \\
+      20 & 34708 & 40120 & 1 \\
+      \end{tabular}
+    \end{center}
+    
+    \section{Conclus\~{a}o}
+    Existem alguns problemas que n\~{a}o podem ser resolvidos em tempo polinomial. Aqui podemos ter quase certeza de que esse problema \'e um deles. Como vimos, os dois algoritmos, din\^amico e Backtracking s\~{a}o exponencias e crescem seu runtime bem rapidamente, at\'e para entradas teoricamente pequenas. J\'a com 22 v\'ertices, eu j\'a n\~{a}o consegui executar o programa por completo sem dar mem\'oria extra para a JVM.
+    Com o guloso usando heur\'isticas, conseguimos uma solu\c{c}\~{a}o n\~{a}o muito longe da \'otima com um custo muito menor. Por isso vemos que para tais problemas, devemos nos perguntar se o caminho sub\'otimo tamb\'em n\~{a}o atende para a demanda em quest\~{a}o. 
+    
+
+
+    
+    
+
+%       )  
+    
+    
+%     \includegraphics[width=1.1\textwidth]{../res/johnson-dolphin-8.jpg}\\\\
+\end{document}

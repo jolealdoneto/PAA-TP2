@@ -1,0 +1,141 @@
+\documentclass[a4paper,11pt,oneside]{article}
+
+% $Id: ba-sample.tex 952 2006-03-06 20:14:35Z schoenw $
+
+% To use this template, you have to have a halfway complete LaTeX
+% installation and you have to run pdflatex, followed by bibtex,
+% following by one-two more pdflatex runs.
+%
+% Note thad usimg a spel chequer (e.g. ispell, aspell) is generolz
+% a very guud ideo.
+
+\usepackage{times}		%% native times roman fonts
+\usepackage{parskip}		%% blank lines between paragraphs, no indent
+\usepackage[pdftex]{graphicx}	%% include graphics, preferrably pdf
+\usepackage[pdftex]{hyperref}	%% many PDF options can be set here
+\usepackage{amsmath}
+\usepackage[brazilian]{babel}
+\pdfadjustspacing=1		%% force LaTeX-like character spacing
+
+\hypersetup{
+  pdfauthor = {Jos\'e Leal Domingues Neto},
+  pdftitle = {Entreg\'avel TP2},
+  pdfkeywords = {tp2}
+}
+
+\begin{document}
+
+  \thispagestyle{empty}
+
+  \begin{flushleft}
+    \textbf{\huge UFMG - PPGCC}\\
+    \vspace*{6mm}
+    \textbf{\huge TP2 - Paradigmas}
+  \end{flushleft}
+  \vspace*{6mm}
+  \begin{flushleft}
+    \textbf{\large Jos\'e Leal Domingues Neto}\\[2ex]
+  \end{flushleft}
+  \vspace*{1mm}
+  \begin{flushleft}
+    \textit{
+      Data: \today \\
+      PAA}
+  \end{flushleft}
+  \vspace*{2mm}
+
+\newpage
+
+  \section{Introdução do problema}
+    \subsection{Problema}
+    O problema em questão é bem parecido com o caixeiro viajante: Quer-se um caminho ótimo entre cidades, que seja dividido entre dois grupos de forma a minimizar o seu custo conjunto. Mais formalmente falando, temos um grafo completo \begin{math} G = (V, E) \end{math}, com cada aresta com um peso \begin{math} p_i \end{math}. 
+    Devemos dividir os vértices em grupos \begin{math} A := \{ v_i, v_j, ... \} \end{math} e \begin{math} B := \{ v_k, v_a, .. \} \end{math} de forma que a soma de seus pesos seja mínima. Há a restrição de que a ordem dos vértices \begin{math} v_i, v_{i+1}, .. \end{math} deve ser respeitada.
+  \section{Modelagens e soluções}
+    \subsection{Dinâmica}
+    Para a resolução do problema em programação dinâmica, temos que simplesmente pensar qual é o nosso estágio e estado.
+    O problema é que como temos dois grupos para a divisão, temos que de alguma forma incluir isso também na solução. Após pensar sobre a modelagem, como temos que passar por todas as cidades, o subproblema se limita a simplesmente a pergunta: A cidade em questão deve ser incluída no grupo \textit{A} ou \textit{B}? Pensado isso, a seguinte equação recursiva se forma:
+    
+    \[
+      OPT(j, A, B) = 
+      \begin{cases}
+      0 & \text{se } j <= 1  \\
+      min\left\{ \begin{aligned}
+	P(A \cup \{c_j\}) + OPT(j-1, A - \{c_j\}, B), \\
+	P(B \cup \{c_j\}) + OPT(j-1, A, B - \{c_j\}))
+		  \end{aligned}
+	\right\} & \text{se } j > 1
+      \end{cases}
+    \]
+    
+    Onde \textit{P} retorna o peso da aresta dos dois últimos elementos do grupo. Com a função recursiva feita, temos diretamente um método estilo \textit{bottom-up} iterativo.
+    
+    \subsection{Guloso}
+    O algoritmo guloso foi relativamente mais fácil de ser construído, tendo em vista que não existem muitas possibilidades e a solução é bem mais intuitiva. O método guloso nesse caso é iterar por cada elemento de forma linear e decidir a inclusão de um vértice \begin{math} v_i \end{math} nos grupos \begin{math} A \text{ ou } B \end{math} onde eles irão incindir o menor custo.
+    
+    \subsection{Backtracking}
+    A implementação do Backtracking vai construindo todas as soluções possíveis, podando a árvore de soluções quando o seu valor atual ultrapassa o mínimo do nível da árvore atual. Isso é feito de forma recursiva, usando um algoritmo estilo \textit{Depth-First-Search}, onde primeiro faz-se toda a árvore incluindo vértice \begin{math} v_j \end{math} no Grupo \textit{A}, checa-se a soma e a solução, e só após expande-se as opções para o grupo \textit{B}, caso a soma atual já não ultrapasse a melhor das soluções já completas.
+
+    
+    \section{Análise da solução subótima gulosa}
+    A solução subótima gulosa produz na maioria dos casos uma solução plausível e que poderá ser confundida como a ótima. Porém ela se engasga com alguns casos especiais. Considere o seguinte caso, onde a célula \begin{math} c_{ij} \end{math} reflete o peso da aresta do vértice \begin{math} v_i \text{ para } v_j \end{math} para os vértices \begin{math} V := \{ A, B, C, D \}\end{math}
+
+    \begin{center}
+      \begin{tabular}{r r r r r}
+	& \textbf{A} & \textbf{B} & \textbf{C} & \textbf{D} \\
+	\textbf{A} & 0 & 1 & 10 & 11 \\
+	\textbf{B} & 1 & 0 & 12 & 13 \\
+	\textbf{C} & 10 & 12 & 0 & 14 \\
+	\textbf{D} & 11 & 13 & 14 & 0
+      \end{tabular}
+    \end{center}
+    
+    Seguindo os passos do algorítmo, temos as seguintes decisões nos passos \begin{math} a_1 \text{ e } a_2 \end{math}: como o vértice inicial de cada grupo não adiciona nenhum custo ao modelo, o algorítmo irá distribuir \begin{math} v_1 \text{ e } v_2 \end{math} da maneira \begin{math} A = \{v_A\} \text{ e } B = \{v_B\} \end{math}. Porém já é possível ver, que seria interessante utilizar a aresta entre esses dois vértices, pois ela possui peso 1 apenas. No final dos passos temos a resposta: \begin{math} A := \{ v_A, v_C \} \text{ e } B := \{ v_B, v_D \}\end{math}. Que não é a solução ótima.
+    
+    \section{Análise da complexidade de tempo e espaço} 
+    \subsection{Programação Dinâmica}
+    No algoritmo de programação dinâmica, para cada vértice \begin{math} v_i \end{math}, será adicionado a um grupo de soluções as duas possibilidades para cada solução anterior. Significa então que dobramos nossa combinação de soluções de forma: \begin{math} S := \{ 2^0, 2^1, ..., 2^n \}  \end{math}. Temos então para essa solução a seguinte equação recursiva: 
+    
+    \begin{center}
+      \begin{math} T(n) = T(n-1) + O(2^n) \end{math}
+    \end{center}
+    
+    Expandindo-a, temos então \begin{math} \sum_{i = 1}^{n} 2^i \end{math}. Sua complexidade de tempo é então \begin{math} O(2^nn) \end{math}. Cada passo, somamos os elementos também, incindindo um custo \begin{math} O(n) \end{math}, mas este acaba sendo irrelevante perto do anterior. Em relação a espaço, para cada passo guardamos \begin{math} 2^n \end{math} elementos, apagando os anteriores em cada passo. Ou seja: complexidade de espaço: \begin{math} O(2^n) \end{math}.
+
+    \subsection{Guloso}
+    Como simplesmente passamos 1 vez pelo nosso grupo de vértices, decidindo localmente qual será o subgrupo assinalado, temos que o algoritmo guloso em questão é \begin{math} O(n) \end{math}. Em espaço, guardamos somente nossa solução atual, sendo então \begin{math} O(1) \end{math}.
+    \subsection{Backtracking}
+    Para o \textit{Backtracking}, em cada passo geramos todas as possibilidades possíveis, criando uma árvore de soluções e podando-a quando necessário. Gerando a árvore temos: \begin{math} O(2^n) \end{math}, já que fazemos todas as permutações. Como há a poda, a partir de certo ponto, esse número irá diminuir a cada passo. Porém não é determinístico, já que depende da entrada. 
+    O solução usa \begin{math} O(2^n) \end{math} de espaço, já que cada folha da árvore é guardado.
+    
+    \section{Experimentos}
+    
+    A seguir temos os experimentos com entradas variadas e seu respectivo runtime. Os valores estão milissegundos.
+    
+    \begin{center}
+      \begin{tabular}{c c c c}
+      \textbf{n} & \textbf{Backtracking} & \textbf{Dynamic} & \textbf{Greedy} \\
+      4 & 4 & 2 & 0 \\
+      8 & 37 & 15 & 0 \\
+      14 & 367 & 216 & 0 \\
+      18 & 16586 & 24152 & 1 \\
+      
+      
+       
+      \end{tabular}
+
+    \end{center}
+    
+    \section{Conclusão}
+    Existem alguns problemas que são NP-Completo e não podem ser resolvidos em tempo polinomial. Aqui podemos ter quase certeza de que esse problema é um deles. Como vimos, os dois algoritmos, dinâmico e backtracking são exponencias e crescem seu runtime bem rapidamente, até para entradas teoricamente pequenas.
+    Com o guloso usando heurísticas, conseguimos uma solução não muito longe da ótima com um custo muito menor.
+    
+
+
+    
+    
+
+%       )  
+    
+    
+%     \includegraphics[width=1.1\textwidth]{../res/johnson-dolphin-8.jpg}\\\\
+\end{document}

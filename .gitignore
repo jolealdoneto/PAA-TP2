@@ -1,0 +1,8 @@
+bin
+*.jar
+.swp
+.swo
+
+.classpath
+.project
+.settings
